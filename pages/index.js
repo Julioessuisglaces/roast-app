@@ -26,8 +26,10 @@ const PILL = 999; // chips / buttons
 const T = {
   en: {
     eyebrow: "The Landing Page Roast",
-    h1: "Your landing page is lying to you.",
-    sub: "Most pages fail for one reason: they make the company the hero, not the customer. Paste your copy. Find out who your page is really about — and the one fix that matters most.",
+    h1: "Does your landing page really convert?",
+    sub: "It may look clear. But if your visitors hesitate, every click can become a missed opportunity.",
+    sub2: "Paste your URL. Get a full analysis, marketing recommendations, and rewrite suggestions in under a minute.",
+    priceLine: "CHF 9 — Full access for 7 days",
     who: "First — who do you sell to?",
     b2cHint: "Selling to individuals",
     b2bHint: "Selling to businesses",
@@ -37,7 +39,7 @@ const T = {
     urlPlaceholder: "yourdomain.com/landing-page",
     urlNote: "We'll read the live page automatically. JavaScript-heavy pages may not read cleanly — paste the copy if so.",
     pastePlaceholder: "Paste your headline, subhead, body copy, and button text here…",
-    roastBtn: "Roast it",
+    roastBtn: "Start the analysis",
     working: "Working…",
     hero: "Who's the hero?",
     oneThing: "If you fix one thing",
@@ -66,8 +68,10 @@ const T = {
   },
   fr: {
     eyebrow: "Le verdict sans détour",
-    h1: "Votre page vous ment.",
-    sub: "La plupart des pages échouent pour une raison : elles font de l'entreprise le héros, pas du client. Collez votre texte. Découvrez de qui parle vraiment votre page, et la seule correction qui compte.",
+    h1: "Votre landing page convertit-elle vraiment ?",
+    sub: "Elle peut sembler claire. Mais si vos visiteurs hésitent, chaque clic peut devenir une occasion perdue.",
+    sub2: "Collez votre URL. Obtenez une analyse complète, des recommandations marketing et des suggestions de réécriture en moins d'une minute.",
+    priceLine: "CHF 9 — Accès complet pendant 7 jours",
     who: "D'abord. À qui vendez-vous ?",
     b2cHint: "Vente aux particuliers",
     b2bHint: "Vente aux entreprises",
@@ -77,7 +81,7 @@ const T = {
     urlPlaceholder: "votredomaine.ch/page",
     urlNote: "Nous lisons la page en direct. Les pages très chargées en JavaScript peuvent mal se lire. Collez le texte si besoin.",
     pastePlaceholder: "Collez votre titre, sous-titre, corps de texte et libellés de boutons ici…",
-    roastBtn: "Analyser",
+    roastBtn: "Commencer l'analyse",
     working: "En cours…",
     hero: "Qui est le héros ?",
     oneThing: "Si vous ne corrigez qu'une chose",
@@ -106,8 +110,10 @@ const T = {
   },
   de: {
     eyebrow: "Der Landingpage-Roast",
-    h1: "Ihre Landingpage belügt Sie.",
-    sub: "Die meisten Seiten scheitern aus einem Grund: Sie machen das Unternehmen zum Helden, nicht den Kunden. Fügen Sie Ihren Text ein. Finden Sie heraus, um wen es auf Ihrer Seite wirklich geht — und die eine Korrektur, die zählt.",
+    h1: "Konvertiert Ihre Landingpage wirklich?",
+    sub: "Sie mag klar wirken. Aber wenn Ihre Besucher zögern, kann jeder Klick zur verpassten Chance werden.",
+    sub2: "Fügen Sie Ihre URL ein. Erhalten Sie in unter einer Minute eine vollständige Analyse, Marketing-Empfehlungen und Umschreibvorschläge.",
+    priceLine: "CHF 9 — Voller Zugang für 7 Tage",
     who: "Zuerst — an wen verkaufen Sie?",
     b2cHint: "Verkauf an Privatpersonen",
     b2bHint: "Verkauf an Unternehmen",
@@ -117,7 +123,7 @@ const T = {
     urlPlaceholder: "ihredomain.ch/seite",
     urlNote: "Wir lesen die Live-Seite automatisch. Stark JavaScript-basierte Seiten lassen sich evtl. schlecht lesen — fügen Sie dann den Text ein.",
     pastePlaceholder: "Fügen Sie hier Ihre Überschrift, Unterzeile, Fließtext und Button-Texte ein…",
-    roastBtn: "Analysieren",
+    roastBtn: "Analyse starten",
     working: "Läuft…",
     hero: "Wer ist der Held?",
     oneThing: "Wenn Sie nur eines ändern",
@@ -359,9 +365,19 @@ export default function App() {
         <h1 style={{ fontFamily: "'Poppins', sans-serif", color: C.ink, fontWeight: 600, fontSize: 64, lineHeight: 1.0, margin: "0 0 22px", letterSpacing: "-0.025em", maxWidth: 720 }}>
           {t.h1}
         </h1>
-        <p style={{ color: C.mid, fontSize: 19, lineHeight: 1.55, maxWidth: 580, margin: "0 0 44px" }}>
+        <p style={{ color: C.mid, fontSize: 19, lineHeight: 1.55, maxWidth: 580, margin: "0 0 18px" }}>
           {t.sub}
         </p>
+        {t.sub2 && (
+          <p style={{ color: C.ink, fontSize: 17, lineHeight: 1.55, maxWidth: 580, margin: "0 0 22px" }}>
+            {t.sub2}
+          </p>
+        )}
+        {t.priceLine && (
+          <div style={{ display: "inline-flex", alignItems: "center", padding: "8px 16px", borderRadius: PILL, background: C.accentSoft, color: C.accent, fontWeight: 700, fontSize: 14.5, marginBottom: 44 }}>
+            {t.priceLine}
+          </div>
+        )}
 
         {/* Market selector — broadest frame, comes first */}
         <p style={{ fontFamily: "'DM Sans'", fontWeight: 700, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.mid, margin: "0 0 12px" }}>
