@@ -1,9 +1,10 @@
 // Server-side roast. Holds the Anthropic key (never exposed to the browser).
 const SYSTEM_PROMPT = require("../../components/prompt").SYSTEM_PROMPT;
+const { verifyPass } = require("../../lib/pass");
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method" });
-  const { pageText, goalLabel, goalHint, market } = req.body || {};
+  const { pageText, goalLabel, goalHint, market, pass } = req.body || {};
   if (!pageText || pageText.trim().length < 40) return res.status(400).json({ error: "short" });
 
   const userContent =
@@ -37,7 +38,19 @@ export default async function handler(req, res) {
     const first = text.indexOf("{");
     const last = text.lastIndexOf("}");
     if (first === -1 || last === -1) return res.status(502).json({ error: "no-json" });
-    return res.status(200).json(JSON.parse(text.slice(first, last + 1)));
+    const parsed = JSON.parse(text.slice(first, last + 1));
+
+    // Gate the paid "cure" behind a valid pass. Free users get the
+    // diagnosis only; the cure fields are removed server-side so they
+    // cannot be unlocked from the browser.
+    const paid = verifyPass(pass) > 0;
+    if (!paid) {
+      delete parsed.roasts;
+      delete parsed.headlineRewrites;
+      delete parsed.visuals;
+      delete parsed.skeleton;
+    }
+    return res.status(200).json({ ...parsed, paid });
   } catch (e) {
     return res.status(500).json({ error: "server", detail: String(e.message || e) });
   }

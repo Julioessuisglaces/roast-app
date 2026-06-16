@@ -171,42 +171,67 @@ export default function App() {
   const [error, setError] = useState(null);
   const [unlocked, setUnlocked] = useState(false); // does a valid pass cover this session
   const [passUntil, setPassUntil] = useState(0); // pass expiry timestamp (ms)
+  const [pass, setPass] = useState(""); // signed pass token from the server
   const [paying, setPaying] = useState(false);
   const cardRef = useRef(null);
 
   const t = T[lang]; // current UI strings
   const PRICE = "CHF 9";
-  const PASS_DAYS = 7; // a single payment unlocks unlimited roasts for this many days
 
-  // Load any existing pass from persistent storage on mount.
+  // On mount: restore any saved pass, and handle the return from Stripe.
   React.useEffect(() => {
-    (async () => {
-      try {
-        const r = await window.storage.get("passUntil");
-        const until = r && r.value ? parseInt(r.value, 10) : 0;
-        if (until && until > Date.now()) {
-          setPassUntil(until);
-          setUnlocked(true);
-        }
-      } catch {} // no pass yet — fine
-    })();
+    // 1. Restore a previously bought pass from this browser.
+    try {
+      const saved = localStorage.getItem("roastPass");
+      const until = parseInt(localStorage.getItem("roastPassUntil") || "0", 10);
+      if (saved && until > Date.now()) {
+        setPass(saved);
+        setPassUntil(until);
+        setUnlocked(true);
+      }
+    } catch {}
+
+    // 2. If Stripe just sent the buyer back, verify the payment and store the pass.
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const sid = params.get("session_id");
+      if (sid) {
+        fetch("/api/verify?session_id=" + encodeURIComponent(sid))
+          .then((r) => (r.ok ? r.json() : Promise.reject()))
+          .then((d) => {
+            if (d.pass) {
+              setPass(d.pass);
+              setPassUntil(d.until);
+              setUnlocked(true);
+              try {
+                localStorage.setItem("roastPass", d.pass);
+                localStorage.setItem("roastPassUntil", String(d.until));
+              } catch {}
+            }
+          })
+          .catch(() => {})
+          .finally(() => {
+            // Clean the session_id out of the URL.
+            window.history.replaceState({}, "", window.location.pathname);
+          });
+      }
+    } catch {}
   }, []);
 
-  // ── PAYMENT (stubbed) ───────────────────────────────────────
-  // In the artifact there is no real checkout. On deployment, replace
-  // the body of unlock() with a Stripe Checkout redirect, and verify
-  // the paid session server-side before granting the pass.
+  // ── PAYMENT: send the buyer to Stripe Checkout ──────────────
   const unlock = async () => {
     setPaying(true);
     try {
-      // DEPLOY: const { url } = await fetch('/api/checkout',{method:'POST'}).then(r=>r.json());
-      //         window.location = url;  // Stripe Checkout → on return, set the pass below.
-      await new Promise((r) => setTimeout(r, 700)); // simulate redirect/return
-      const until = Date.now() + PASS_DAYS * 24 * 60 * 60 * 1000;
-      setPassUntil(until);
-      setUnlocked(true);
-      try { await window.storage.set("passUntil", String(until)); } catch {}
-    } finally {
+      const res = await fetch("/api/checkout", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location = data.url; // off to Stripe; returns to /?session_id=...
+      } else {
+        setError(t.errGeneric);
+        setPaying(false);
+      }
+    } catch (e) {
+      setError(t.errGeneric);
       setPaying(false);
     }
   };
@@ -265,6 +290,7 @@ export default function App() {
           goalLabel: T.en.goals[goal],
           goalHint: T.en.goalHints[goal],
           market,
+          pass, // signed pass token; server gates the cure on it
         }),
       });
       if (!res.ok) {
@@ -273,9 +299,9 @@ export default function App() {
       }
       const parsed = await res.json();
       setResult(parsed);
-      // A valid pass keeps the cure unlocked across every new roast in the window.
-      // Without a pass, the cure stays locked until purchase.
-      setUnlocked(passUntil > Date.now());
+      // The server only includes the cure (roasts/rewrites/skeleton) when the
+      // pass is valid. Show the unlocked view exactly when it sent the cure.
+      setUnlocked(Boolean(parsed.paid));
     } catch (e) {
       const msg = String(e.message || e);
       setError(
